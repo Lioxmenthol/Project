@@ -25,32 +25,23 @@ jobs:
             rm -rf extracted zerotoolsskin.zip
           fi
 
-      - name: Auto Fix AndroidManifest References
+      - name: Auto Fix build.gradle and Manifest Errors
         shell: bash
         run: |
+          # 1. Mengubah shrinkResources true menjadi false secara otomatis agar build tidak mogok akibat error XML
+          GRADLE_PATH="app/build.gradle"
+          if [ -f "$GRADLE_PATH" ]; then
+            echo "Menonaktifkan shrinkResources secara otomatis..."
+            sed -i 's/shrinkResources true/shrinkResources false/g' "$GRADLE_PATH"
+          fi
+
+          # 2. Membersihkan kesalahan manifest otomatis agar proses merger aman
           MANIFEST_PATH="app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
             echo "Memperbaiki Manifest otomatis..."
             sed -i 's/package="com.zero.tools.skin"//g' "$MANIFEST_PATH"
             sed -i 's/theme="@style\/AppTheme.DebugActivity"/theme="@style\/AppTheme"/g' "$MANIFEST_PATH"
             sed -i '/<activity android:name="com.google.android.gms.ads.AdActivity"/,/.*\/>/d' "$MANIFEST_PATH"
-          fi
-
-      - name: Auto Fix Layout Main Resource Error
-        shell: bash
-        run: |
-          LAYOUT_PATH="app/src/main/res/layout/main.xml"
-          if [ -f "$LAYOUT_PATH" ]; then
-            echo "Memperbaiki struktur resource main.xml otomatis..."
-            # 1. Mengganti AppBarOverlay dan PopupOverlay yang hilang ke tema standar bawaan Android/Material
-            sed -i 's/@style\/AppTheme.AppBarOverlay/@style\/ThemeOverlay.AppCompat.Dark.ActionBar/g' "$LAYOUT_PATH"
-            sed -i 's/@style\/AppTheme.PopupOverlay/@style\/ThemeOverlay.AppCompat.Light/g' "$LAYOUT_PATH"
-            
-            # 2. Menghapus atribut kustom ilegal yang menyebabkan AAPT resource linking failed
-            sed -i '/app:pointContainerLeftRightPadding=/d' "$LAYOUT_PATH"
-            sed -i '/app:isClipChildrenMode=/d' "$LAYOUT_PATH"
-          else
-            echo "Berkas layout main.xml tidak ditemukan pada jalur: $LAYOUT_PATH"
           fi
 
       - name: Set up JDK 17
@@ -76,7 +67,7 @@ jobs:
           fi
           chmod +x gradlew
 
-      - name: Build Release APK
+      - name: Build Release APK with Obfuscation
         run: ./gradlew assembleRelease --no-daemon --refresh-dependencies
 
       - name: Upload APK Artifact
