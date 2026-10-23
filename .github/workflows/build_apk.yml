@@ -26,6 +26,17 @@ jobs:
             rm -rf extracted zerotoolsskin.zip
           fi
 
+      - name: Fix CI-only DebugActivity Theme Reference
+        shell: bash
+        run: |
+          MANIFEST="app/src/main/AndroidManifest.xml"
+
+          if [ -f "$MANIFEST" ]; then
+            sed -i \
+              's/@style\/AppTheme\.DebugActivity/@style\/AppTheme/g' \
+              "$MANIFEST"
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
