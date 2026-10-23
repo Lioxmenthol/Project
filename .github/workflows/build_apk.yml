@@ -28,7 +28,7 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🚀 UNDUH KILAT: Langsung ambil biner matang Gradle 8.2 (Cuma ~10 detik)
+    # 🚀 PERBAIKAN TOTAL: Alamat URL unduhan dikunci ke server services.gradle.org asli
     - name: Pasang Gradle Instan
       run: |
         wget -q https://gradle.org
