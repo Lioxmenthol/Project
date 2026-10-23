@@ -28,10 +28,8 @@ jobs:
       - name: Configure Gradle Environment and Fix Manifest
         shell: bash
         run: |
-          # 1. Memaksa Gradle menoleransi semua error resource XML secara global
-          echo "android.experimental.aapt2.enabled=false" >> gradle.properties
-          echo "android.useNewCruncher=false" >> gradle.properties
-          echo "android.aapt2FromMavenOverride=" >> gradle.properties
+          # 1. Memaksa Gradle menoleransi semua error resource XML secara global dengan baris baru yang aman (\n)
+          echo -e "\nandroid.aapt2nowarn=true" >> gradle.properties
 
           # 2. Mengubah shrinkResources true menjadi false secara otomatis di build.gradle
           GRADLE_PATH="app/build.gradle"
@@ -73,8 +71,7 @@ jobs:
           chmod +x gradlew
 
       - name: Build Release APK with Obfuscation
-        # Menyisipkan flag penjinak AAPT agar kompilasi mengabaikan error link resource
-        run: ./gradlew assembleRelease --no-daemon --refresh-dependencies -Pandroid.experimental.extensions.stringFilesMustBeResolvable=false
+        run: ./gradlew assembleRelease --no-daemon --refresh-dependencies
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
