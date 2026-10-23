@@ -5,10 +5,6 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-# 🔒 KUNCI URL: Menggunakan URL distribusi biner asli secara tepat
-env:
-  GRADLE_DOWNLOAD_URL: 'https://gradle.org'
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,10 +28,10 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🚀 JALUR FIX: Pemanggilan variabel menggunakan format env.NAMAVARIABEL yang valid
+    # 🚀 JALUR AMAN MURNI: Tautan diketik langsung di dalam perintah curl tanpa variabel env
     - name: Unduh dan Ekstrak Biner Gradle 8.2
       run: |
-        curl -L -s -o gradle-8.2-bin.zip "${{ env.GRADLE_DOWNLOAD_URL }}"
+        curl -L -s -o gradle-8.2-bin.zip "https://gradle.org"
         unzip -q gradle-8.2-bin.zip
         rm -f gradle-8.2-bin.zip
 
