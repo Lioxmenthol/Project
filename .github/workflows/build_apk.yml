@@ -28,11 +28,18 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🚀 ISOLASI MANDIRI: Menggunakan perintah gradle bawaan sistem dengan rumah cache terisolasi
+    # 🚀 ISOLASI BINER MANDIRI: Unduh langsung biner resmi ke direktori lokal tanpa mengandalkan system path utama
+    - name: Unduh dan Ekstrak Biner Gradle 8.2
+      run: |
+        curl -L -s -o gradle-8.2-bin.zip https://gradle.org
+        unzip -q gradle-8.2-bin.zip
+        rm -f gradle-8.2-bin.zip
+
+    # ⚙️ EKSEKUSI COMPILER AMAN: Menembak langsung biner versi lokal agar sistem 9.8.1 terabaikan secara total
     - name: Build Release APK dengan R8 Enkripsi
       run: |
         mkdir -p .gradle_home
-        gradle assembleRelease --no-daemon --gradle-user-home .gradle_home --refresh-dependencies
+        ./gradle-8.2/bin/gradle assembleRelease --no-daemon --gradle-user-home .gradle_home --refresh-dependencies
 
     - name: Unggah Hasil APK Aman ke GitHub
       uses: actions/upload-artifact@v4
