@@ -28,20 +28,20 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🔒 KUNCI UTAMA: Memasang dan mengunci sistem server ke Gradle 8.5 murni
-    - name: Setup Sistem Gradle 8.5
+    # 🔒 PENYESUAIAN UTAMA: Mengunci server ke sistem Gradle 8.0 murni
+    - name: Setup Sistem Gradle 8.0
       uses: gradle/actions/setup-gradle@v4
       with:
-        gradle-version: 8.5
+        gradle-version: 8.0
 
-    - name: Buat Wrapper Baru
+    - name: Buat Wrapper Baru 8.0
       run: |
         rm -f gradlew gradlew.bat
         rm -rf gradle
-        gradle wrapper --gradle-version 8.5
+        gradle wrapper --gradle-version 8.0
         chmod +x gradlew
 
-    - name: Build Release APK dengan R8
+    - name: Build Release APK dengan R8 Enkripsi
       run: ./gradlew assembleRelease --no-daemon
 
     - name: Unggah Hasil APK Aman ke GitHub
