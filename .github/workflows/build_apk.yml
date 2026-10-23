@@ -37,6 +37,25 @@ jobs:
               "$MANIFEST"
           fi
 
+      - name: Add Missing Resources for CI Build
+        shell: bash
+        run: |
+          VALUES_DIR="app/src/main/res/values"
+          mkdir -p "$VALUES_DIR"
+
+          cat > "$VALUES_DIR/ci_workflow_resources.xml" <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme.AppBarOverlay" />
+              <style name="AppTheme.PopupOverlay" />
+
+              <attr name="pointContainerLeftRightPadding" format="dimension" />
+              <attr name="isClipChildrenMode" format="boolean" />
+          </resources>
+          EOF
+
+          echo "Resource sementara untuk CI telah dibuat."
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
