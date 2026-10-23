@@ -28,17 +28,16 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🔒 SETUP GRADLE: Menggunakan versi 8.2 resmi tanpa menyimpan cache rusak sebelumnya
+    # 🔒 SETUP GRADLE: Mengaktifkan pembersihan cache terintegrasi dari ekstensi resmi
     - name: Setup Sistem Gradle 8.2
       uses: gradle/actions/setup-gradle@v4
       with:
         gradle-version: 8.2
-        cache-disabled: true
+        cache-overwrite-existing: true
 
-    # 🧹 LANGKAH FIX: Bersihkan cache korup bawaan server secara paksa sebelum membuat wrapper
-    - name: Bersihkan Cache dan Buat Wrapper
+    # ⚙️ PERBAIKAN: Membuat wrapper secara bersih tanpa perintah 'rm' manual yang memicu crash izin server
+    - name: Buat Wrapper Bersih
       run: |
-        rm -rf ~/.gradle/caches/
         rm -f gradlew gradlew.bat
         rm -rf gradle
         gradle wrapper --gradle-version 8.2
