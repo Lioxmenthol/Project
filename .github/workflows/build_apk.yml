@@ -55,6 +55,20 @@ jobs:
           EOF
 
           echo "Resource sementara untuk CI telah dibuat."
+          
+      - name: Inspect Local Libraries
+        shell: bash
+        run: |
+          echo "=== Library JAR ==="
+          find app/libs -maxdepth 2 -type f 2>/dev/null || true
+
+          echo "=== Library AAR ==="
+          find . -type f -name "*.aar" -not -path "*/build/*"
+
+          echo "=== Gradle dependencies ==="
+          grep -nE "implementation|api |compileOnly|repositories" \
+            app/build.gradle || true
+
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
