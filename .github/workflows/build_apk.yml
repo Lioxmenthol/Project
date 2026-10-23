@@ -36,15 +36,15 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Setup Gradle 8.12.0
+      - name: Setup Gradle 8.12
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.12.0
+          gradle-version: 8.12
 
       - name: Generate Gradle wrapper if missing
         run: |
           if [ ! -f "./gradlew" ]; then
-            gradle wrapper --gradle-version 8.12.0
+            gradle wrapper --gradle-version 8.12
           fi
           chmod +x gradlew
 
