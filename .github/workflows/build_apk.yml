@@ -13,7 +13,6 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 🛠️ OTOMATISASI: Menggunakan nama huruf kecil zerotoolsskin.zip
     - name: Ekstrak Proyek dari ZIP
       run: |
         if [ -f "zerotoolsskin.zip" ]; then
@@ -28,14 +27,13 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: '17'
-        cache: 'gradle'
 
-    - name: Buat Wrapper Gradle Otomatis
+    # KUNCI UTAMA: Memaksa server membuat Wrapper Gradle versi 8.5 murni
+    - name: Buat Wrapper Gradle Aman
       run: |
-        if [ ! -f "gradlew" ]; then
-          gradle wrapper --gradle-version 8.5
-        fi
-        chmod +x gradlew
+        rm -f gradlew gradlew.bat
+        rm -rf gradle
+        gradle wrapper --gradle-version 8.5
 
     - name: Build Release APK dengan R8
       run: ./gradlew assembleRelease --no-daemon
