@@ -28,17 +28,18 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🚀 PERBAIKAN: Menggunakan URL valid get.sdkman.io untuk menginstal sistem Gradle murni
     - name: Pasang Gradle via SDKMAN
       run: |
-        curl -s "https://get.sdkman.io" | bash
+        curl -s "https://sdkman.io" | bash
         source "$HOME/.sdkman/bin/sdkman-init.sh"
         sdk install gradle 8.2
         echo "$HOME/.sdkman/candidates/gradle/current/bin" >> $GITHUB_PATH
 
-    # 🛠️ EKSEKUSI BUILD: Menggunakan perintah 'gradle' sistem murni secara langsung
+    # 🚀 ISOLASI TOTAL: Mengalihkan rumah cache ke './.gradle_home' murni untuk membuang bug 'jars-9'
     - name: Build Release APK dengan R8 Enkripsi
-      run: gradle assembleRelease --no-daemon --refresh-dependencies
+      run: |
+        mkdir -p .gradle_home
+        gradle assembleRelease --no-daemon --gradle-user-home .gradle_home --refresh-dependencies
 
     - name: Unggah Hasil APK Aman ke GitHub
       uses: actions/upload-artifact@v4
