@@ -28,18 +28,23 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🔒 SETUP STABIL: Mengunci sistem server ke Gradle versi lengkap 8.2.1 tanpa download manual
-    - name: Setup Sistem Gradle 8.2.1
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: 8.2.1
-
-    - name: Buat Wrapper Baru 8.2.1
+    # 🚀 BYPASS TOTAL: Memasang Gradle 8.2 secara mandiri menggunakan SDKMAN! tanpa menyentuh cache 'gradle/actions'
+    - name: Pasang Gradle via SDKMAN
       run: |
-        rm -f gradlew gradlew.bat
-        rm -rf gradle
-        gradle wrapper --gradle-version 8.2.1
-        chmod +x gradlew
+        curl -s "https://sdkman.io" | bash
+        source "$HOME/.sdkman/bin/sdkman-init.sh"
+        sdk install gradle 8.2
+        echo "$HOME/.sdkman/candidates/gradle/current/bin" >> $GITHUB_PATH
 
+    # 🛠️ EKSEKUSI BUILD: Menggunakan perintah 'gradle' sistem murni secara langsung
     - name: Build Release APK dengan R8 Enkripsi
-      run: ./gradlew assembleRelease --no-daemon
+      run: gradle assembleRelease --no-daemon --refresh-dependencies
+
+    - name: Unggah Hasil APK Aman ke GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: ZeroToolsSkin-Secure-APK
+        path: |
+          app/build/outputs/apk/release/*.apk
+          **/build/outputs/apk/release/*.apk
+        retention-days: 7
