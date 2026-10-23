@@ -28,23 +28,18 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🚀 JALUR AMAN MURNI: Tautan diketik langsung di dalam perintah curl tanpa variabel env
-    - name: Unduh dan Ekstrak Biner Gradle 8.2
-      run: |
-        curl -L -s -o gradle-8.2-bin.zip "https://gradle.org"
-        unzip -q gradle-8.2-bin.zip
-        rm -f gradle-8.2-bin.zip
+    # 🚀 PASANG GRADLE OTOMATIS: Versi 8.2 dikunci langsung oleh sistem GitHub Actions tanpa download manual
+    - name: Setup Sistem Gradle 8.2
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: 8.2
+        cache-overwrite-existing: true
 
+    # ⚙️ EKSEKUSI COMPILER: Membuat ulang wrapper lokal dan jalankan kompilasi R8
     - name: Build Release APK dengan R8 Enkripsi
       run: |
-        mkdir -p .gradle_home
-        ./gradle-8.2/bin/gradle assembleRelease --no-daemon --gradle-user-home .gradle_home --refresh-dependencies
-
-    - name: Unggah Hasil APK Aman ke GitHub
-      uses: actions/upload-artifact@v4
-      with:
-        name: ZeroToolsSkin-Secure-APK
-        path: |
-          app/build/outputs/apk/release/*.apk
-          **/build/outputs/apk/release/*.apk
-        retention-days: 7
+        rm -f gradlew gradlew.bat
+        rm -rf gradle
+        gradle wrapper --gradle-version 8.2
+        chmod +x gradlew
+        ./gradlew assembleRelease --no-daemon --refresh-dependencies
