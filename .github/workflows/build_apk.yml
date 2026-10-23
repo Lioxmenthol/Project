@@ -2,7 +2,7 @@ name: Build Android APK Release
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
@@ -17,53 +17,32 @@ jobs:
         shell: bash
         run: |
           if [ -f "zerotoolsskin.zip" ]; then
+            mkdir -p extracted
             unzip -o zerotoolsskin.zip -d extracted
             shopt -s dotglob nullglob
             for item in extracted/*; do
-              mv "$item" .
+              mv -f "$item" .
             done
             rm -rf extracted zerotoolsskin.zip
-          fi
-
-      - name: Configure Gradle Environment and Fix Manifest
-        shell: bash
-        run: |
-          # 1. Menoleransi semua kesalahan resource XML secara aman
-          echo -e "\nandroid.aapt2nowarn=true" >> gradle.properties
-
-          # 2. Mengaktifkan Proguard/R8 pada mode debug agar bypass kebutuhan Keystore rilis di CI
-          GRADLE_PATH="app/build.gradle"
-          if [ -f "$GRADLE_PATH" ]; then
-            echo "Mengonfigurasi proteksi Proguard pada lingkungan build..."
-            sed -i 's/shrinkResources true/shrinkResources false/g' "$GRADLE_PATH"
-            # Memaksa build debug mengaktifkan minifikasi kode agar dibaca Play Console
-            sed -i '/buildTypes {/a \        debug {\n            minifyEnabled true\n            proguardFiles getDefaultProguardFile('\''proguard-android-optimize.txt'\''), '\''proguard-rules.pro'\''\n        }' "$GRADLE_PATH"
-          fi
-
-          # 3. Membersihkan kesalahan manifest otomatis agar proses merger aman
-          MANIFEST_PATH="app/src/main/AndroidManifest.xml"
-          if [ -f "$MANIFEST_PATH" ]; then
-            echo "Memperbaiki Manifest otomatis..."
-            sed -i 's/package="com.zero.tools.skin"//g' "$MANIFEST_PATH"
-            sed -i 's/theme="@style\/AppTheme.DebugActivity"/theme="@style\/AppTheme"/g' "$MANIFEST_PATH"
-            sed -i '/<activity android:name="com.google.android.gms.ads.AdActivity"/,/.*\/>/d' "$MANIFEST_PATH"
           fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: "zulu"
+          distribution: zulu
           java-version: "17"
 
       - name: Install Android SDK 36
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
 
       - name: Setup Gradle 8.13
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.13
+          gradle-version: "8.13"
 
       - name: Generate Gradle wrapper if missing
         run: |
@@ -72,12 +51,15 @@ jobs:
           fi
           chmod +x gradlew
 
-      - name: Build APK with Obfuscation Enabled
-        # Mengubah target dari assembleRelease menjadi assembleDebug demi memintas proteksi Keystore
-        run: ./gradlew assembleDebug --no-daemon --refresh-dependencies
+      - name: Build Release APK with R8
+        run: |
+          ./gradlew assembleRelease \
+            --no-daemon \
+            --stacktrace
 
-      - name: Upload APK Artifact
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: Released-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
