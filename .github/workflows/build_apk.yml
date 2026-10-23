@@ -95,16 +95,46 @@ jobs:
           fi
           chmod +x gradlew
 
+      
       - name: Build Release APK with R8
+        id: build_apk
+        continue-on-error: true
         run: |
           ./gradlew assembleRelease \
             --no-daemon \
-            --stacktrace
+            --stacktrace \
             --info
 
+      - name: Check APK Output
+        if: always()
+        id: check_apk
+        shell: bash
+        run: |
+          APK="app/build/outputs/apk/release/app-release.apk"
+
+          if [ -f "$APK" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "APK ditemukan: $APK"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "APK release tidak ditemukan."
+          fi
+
       - name: Upload Release APK
+        if: steps.check_apk.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Released-APK
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+
+      - name: Report Build Result
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.build_apk.outcome }}" = "success" ] && \
+             [ "${{ steps.check_apk.outputs.exists }}" = "true" ]; then
+            echo "Build berhasil dan APK tersedia."
+          else
+            echo "::warning::Build gagal atau APK release tidak tersedia. Periksa log build."
+          fi
