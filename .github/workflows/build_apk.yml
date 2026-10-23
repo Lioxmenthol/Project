@@ -25,6 +25,23 @@ jobs:
             rm -rf extracted zerotoolsskin.zip
           fi
 
+      - name: Auto Fix AndroidManifest References
+        shell: bash
+        run: |
+          MANIFEST_PATH="app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            echo "Memperbaiki Manifest otomatis..."
+            # 1. Menghapus atribut package usang di tag manifest
+            sed -i 's/package="com.zero.tools.skin"//g' "$MANIFEST_PATH"
+            # 2. Mengubah tema DebugActivity yang hilang menjadi AppTheme biasa
+            sed -i 's/theme="@style\/AppTheme.DebugActivity"/theme="@style\/AppTheme"/g' "$MANIFEST_PATH"
+            # 3. Menghapus duplikasi AdActivity yang bikin merger gagal
+            # Menghapus salah satu blok AdActivity jika tertulis ganda di paling bawah
+            sed -i '/<activity android:name="com.google.android.gms.ads.AdActivity"/,/.*\/>/d' "$MANIFEST_PATH"
+          else
+            echo "AndroidManifest.xml tidak ditemukan pada jalur: $MANIFEST_PATH"
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
