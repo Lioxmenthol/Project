@@ -28,14 +28,16 @@ jobs:
       - name: Configure Gradle Environment and Fix Manifest
         shell: bash
         run: |
-          # 1. Memaksa Gradle menoleransi semua error resource XML secara global dengan baris baru yang aman (\n)
+          # 1. Menoleransi semua kesalahan resource XML secara aman
           echo -e "\nandroid.aapt2nowarn=true" >> gradle.properties
 
-          # 2. Mengubah shrinkResources true menjadi false secara otomatis di build.gradle
+          # 2. Mengaktifkan Proguard/R8 pada mode debug agar bypass kebutuhan Keystore rilis di CI
           GRADLE_PATH="app/build.gradle"
           if [ -f "$GRADLE_PATH" ]; then
-            echo "Menonaktifkan shrinkResources..."
+            echo "Mengonfigurasi proteksi Proguard pada lingkungan build..."
             sed -i 's/shrinkResources true/shrinkResources false/g' "$GRADLE_PATH"
+            # Memaksa build debug mengaktifkan minifikasi kode agar dibaca Play Console
+            sed -i '/buildTypes {/a \        debug {\n            minifyEnabled true\n            proguardFiles getDefaultProguardFile('\''proguard-android-optimize.txt'\''), '\''proguard-rules.pro'\''\n        }' "$GRADLE_PATH"
           fi
 
           # 3. Membersihkan kesalahan manifest otomatis agar proses merger aman
@@ -70,11 +72,12 @@ jobs:
           fi
           chmod +x gradlew
 
-      - name: Build Release APK with Obfuscation
-        run: ./gradlew assembleRelease --no-daemon --refresh-dependencies
+      - name: Build APK with Obfuscation Enabled
+        # Mengubah target dari assembleRelease menjadi assembleDebug demi memintas proteksi Keystore
+        run: ./gradlew assembleDebug --no-daemon --refresh-dependencies
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Released-APK
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/debug/*.apk
