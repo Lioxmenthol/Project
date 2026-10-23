@@ -5,6 +5,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+# 🔒 KUNCI DI SINI: Menyimpan tautan murni di dalam variabel lingkungan sistem agar tidak salah baca
+env:
+  GRADLE_DOWNLOAD_URL: 'https://gradle.org'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,14 +32,13 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 🚀 ISOLASI BINER MANDIRI: Unduh langsung biner resmi ke direktori lokal tanpa mengandalkan system path utama
+    # 🚀 JALUR AMAN: Mengunduh biner murni via variabel env yang sudah terkunci mati
     - name: Unduh dan Ekstrak Biner Gradle 8.2
       run: |
-        curl -L -s -o gradle-8.2-bin.zip https://gradle.org
+        curl -L -s -o gradle-8.2-bin.zip "${{ env:GRADLE_DOWNLOAD_URL }}"
         unzip -q gradle-8.2-bin.zip
         rm -f gradle-8.2-bin.zip
 
-    # ⚙️ EKSEKUSI COMPILER AMAN: Menembak langsung biner versi lokal agar sistem 9.8.1 terabaikan secara total
     - name: Build Release APK dengan R8 Enkripsi
       run: |
         mkdir -p .gradle_home
